@@ -1,0 +1,12 @@
+[
+  { "username": "test1", "password": "12345", "email": "test1@test.com" },
+  { "username": "test2", "password": "12345", "email": "test2@test.com" },
+  { "username": "test3", "password": "12345", "email": "test3@test.com" },
+  { "username": "test4", "password": "12345", "email": "test4@test.com" },
+  { "username": "test5", "password": "12345", "email": "test5@test.com" },
+  { "username": "test6", "password": "12345", "email": "test6@test.com" },
+  { "username": "test7", "password": "12345", "email": "test7@test.com" },
+  { "username": "test8", "password": "12345", "email": "test8@test.com" },
+  { "username": "test9", "password": "12345", "email": "test9@test.com" },
+  { "username": "test10", "password": "12345", "email": "test10@test.com" }
+]

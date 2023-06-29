@@ -24,3 +24,7 @@ export interface IUserAfterJWT {
 export interface IReqUser extends Request {
   user: IUserAfterJWT;
 }
+
+export interface IMessage {
+  message: string;
+}

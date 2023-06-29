@@ -19,11 +19,14 @@ export class AuthGuard implements CanActivate {
     try {
       const authHeader = req.headers.authorization;
 
+      if (!authHeader)
+        throw new UnauthorizedException({ message: 'No token data' });
+
       const bearer = authHeader.split(' ')[0];
       const token = authHeader.split(' ')[1];
 
-      if (bearer !== 'Bearer' || token)
-        new UnauthorizedException({ message: 'No token data' });
+      if (bearer !== 'Bearer' || !token)
+        throw new UnauthorizedException({ message: 'No token data' });
 
       const user = this.jwtService.decode(token);
 
@@ -35,7 +38,7 @@ export class AuthGuard implements CanActivate {
       const isUser = await this.authService.findById(user.id);
       if (isUser && isUser.token !== token)
         throw new UnauthorizedException({
-          message: 'User not found',
+          message: 'User unathorized',
         });
 
       req.user = user;

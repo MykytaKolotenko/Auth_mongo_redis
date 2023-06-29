@@ -7,43 +7,52 @@ import {
   Post,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ILogin, IReqUser, IToken, IUserDtoRequest } from './auth.dto';
-import { User } from 'src/shema/user.shema';
-import { AuthService } from './auth.service';
+import {
+  ILogin,
+  IMessage,
+  IReqUser,
+  IToken,
+  IUserDtoRequest,
+} from './auth.dto';
 import Hash from 'src/helpers/Hash';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from './auth.guard';
+import { AuthService } from './auth.service';
+import { ErrorWrapper } from 'src/interceptors/errorWrapper.interceptor';
 
+@UseInterceptors(ErrorWrapper)
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly AuthService: AuthService,
+    private readonly authService: AuthService,
     private readonly jwtService: JwtService,
   ) {}
-  @HttpCode(201)
-  @Post('/register')
-  async register(@Body() user: IUserDtoRequest): Promise<User> {
-    user.password = await Hash.hashData(user.password);
-    const data = await this.AuthService.create(user);
 
-    return data;
+  @Post('/register')
+  @HttpCode(201)
+  async register(@Body() user: IUserDtoRequest): Promise<IMessage> {
+    user.password = await Hash.hashData(user.password);
+    await this.authService.create(user);
+
+    return { message: 'registration successful' };
   }
 
   @Post('/login')
   async login(@Body() userData: ILogin): Promise<IToken> {
     const { password, email } = userData;
-    if (!password && !email)
+    if (!password || !email)
       throw new HttpException('Not all data provided', 400);
 
     const {
       username,
       password: hashedPass,
       id,
-    } = await this.AuthService.findByEmail(email);
+    } = await this.authService.findByEmail(email);
     if (!username) throw new HttpException('User not found', 404);
 
-    const isCorrectPass = Hash.compareData(password, hashedPass);
+    const isCorrectPass = await Hash.compareData(password, hashedPass);
     if (!isCorrectPass) throw new HttpException('Password wrong', 400);
 
     const access_token = await this.jwtService.signAsync({
@@ -51,30 +60,28 @@ export class AuthController {
       username,
       id,
     });
-
-    await this.AuthService.setToken(id, access_token);
+    await this.authService.setToken(id, access_token);
 
     return {
       access_token,
     };
   }
 
-  @UseGuards(AuthGuard)
   @Get('/current')
-  async current(@Req() req: IReqUser) {
+  @UseGuards(AuthGuard)
+  async current(@Req() req: IReqUser): Promise<Partial<IUserDtoRequest>> {
     const { email, username } = req.user;
     return { email, username };
   }
 
-  @UseGuards(AuthGuard)
-  @HttpCode(204)
   @Get('/logout')
-  async logout(@Req() req: IReqUser) {
+  @UseGuards(AuthGuard)
+  async logout(@Req() req: IReqUser): Promise<IMessage> {
     const { id } = req.user;
 
-    const user = await this.AuthService.setToken(id, null);
+    const user = await this.authService.setToken(id, null);
     if (!user) throw new HttpException('User not found', 404);
 
-    return;
+    return { message: 'Successfull' };
   }
 }
