@@ -22,7 +22,6 @@
     "docker:mongo": "docker run  -p 27017:27017 --name mongo -d mongo",
     "docker:stop": "docker stop some-redis mongo",
     "docker:run": "docker start mongo some-redis",
-    "init:data": "node init/init.mjs",
     "start:first": "npm run docker:redis && npm run docker:mongo & node init/init.mjs & npm run start:dev"
   },
   "dependencies": {
